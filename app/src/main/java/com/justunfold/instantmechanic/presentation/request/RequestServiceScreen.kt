@@ -13,32 +13,34 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RequestServiceScreen(
+    mechanicId: String,
     mechanicName: String,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    viewModel: RequestViewModel = hiltViewModel()
 ) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+
     var customerName by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
     var vehicleNumber by remember { mutableStateOf("") }
     var problemDescription by remember { mutableStateOf("") }
 
-    // Service Dropdown
     val defaultServices = listOf("General Inspection", "Brake Repair", "Oil Change", "Engine Diagnostics", "Tire Replacement", "Emergency Towing")
     var expandedDropdown by remember { mutableStateOf(false) }
     var selectedService by remember { mutableStateOf(defaultServices.first()) }
 
-    var showDialog by remember { mutableStateOf(false) }
-
-    // Strict Validations
     val isPhoneValid = phoneNumber.matches(Regex("^[0-9]{10}$"))
-    val isVehicleValid = vehicleNumber.trim().length >= 4
     val isFormValid = customerName.trim().length >= 2 &&
             isPhoneValid &&
-            isVehicleValid &&
-            problemDescription.trim().isNotBlank()
+            vehicleNumber.trim().length >= 4 &&
+            problemDescription.trim().isNotBlank() &&
+            !state.isSubmitting
 
     Scaffold(
         topBar = {
@@ -72,7 +74,6 @@ fun RequestServiceScreen(
                 )
             }
 
-            // Customer Name
             OutlinedTextField(
                 value = customerName,
                 onValueChange = { customerName = it },
@@ -82,7 +83,6 @@ fun RequestServiceScreen(
                 singleLine = true
             )
 
-            // Strict Phone Number Input
             OutlinedTextField(
                 value = phoneNumber,
                 onValueChange = { if (it.length <= 10 && it.all { char -> char.isDigit() }) phoneNumber = it },
@@ -91,15 +91,9 @@ fun RequestServiceScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true,
-                supportingText = {
-                    if (phoneNumber.isNotEmpty() && !isPhoneValid) {
-                        Text("Enter a valid 10-digit mobile number", color = MaterialTheme.colorScheme.error)
-                    }
-                },
                 isError = phoneNumber.isNotEmpty() && !isPhoneValid
             )
 
-            // Vehicle Number
             OutlinedTextField(
                 value = vehicleNumber,
                 onValueChange = { vehicleNumber = it.uppercase() },
@@ -109,7 +103,6 @@ fun RequestServiceScreen(
                 singleLine = true
             )
 
-            // Select Service Exposed Dropdown Menu
             ExposedDropdownMenuBox(
                 expanded = expandedDropdown,
                 onExpandedChange = { expandedDropdown = !expandedDropdown }
@@ -120,9 +113,7 @@ fun RequestServiceScreen(
                     readOnly = true,
                     label = { Text("Select Service *") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedDropdown) },
-                    modifier = Modifier
-                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-                        .fillMaxWidth(),
+                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 )
                 ExposedDropdownMenu(
@@ -141,7 +132,6 @@ fun RequestServiceScreen(
                 }
             }
 
-            // Problem Description
             OutlinedTextField(
                 value = problemDescription,
                 onValueChange = { problemDescription = it },
@@ -152,36 +142,47 @@ fun RequestServiceScreen(
                 maxLines = 5
             )
 
+            state.errorMessage?.let {
+                Text(text = it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            }
+
             Spacer(Modifier.height(8.dp))
 
             Button(
-                onClick = { showDialog = true },
+                onClick = {
+                    viewModel.submitBooking(
+                        mechanicId = mechanicId,
+                        mechanicName = mechanicName,
+                        customerName = customerName,
+                        phoneNumber = phoneNumber,
+                        vehicleNumber = vehicleNumber,
+                        selectedService = selectedService,
+                        description = problemDescription
+                    )
+                },
                 enabled = isFormValid,
                 shape = RoundedCornerShape(12.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp)
+                modifier = Modifier.fillMaxWidth().height(52.dp)
             ) {
-                Text("Confirm & Submit Request", style = MaterialTheme.typography.titleSmall)
+                if (state.isSubmitting) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                } else {
+                    Text("Confirm & Submit to Firestore", style = MaterialTheme.typography.titleSmall)
+                }
             }
         }
     }
 
-    if (showDialog) {
+    if (state.isSuccess) {
         AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text("Service Request Confirmed!", fontWeight = FontWeight.Bold) },
+            onDismissRequest = { onBackClick() },
+            title = { Text("Request Synced to Cloud!", fontWeight = FontWeight.Bold) },
             text = {
-                Text("Thank you, $customerName.\n\nYour request for $selectedService on vehicle $vehicleNumber has been sent to $mechanicName. They will call you at +91 $phoneNumber shortly.")
+                Text("Your request for $selectedService has been stored in Firebase Firestore. The garage team will reach out at $phoneNumber.")
             },
             confirmButton = {
-                Button(
-                    onClick = {
-                        showDialog = false
-                        onBackClick()
-                    }
-                ) {
-                    Text("Done")
+                Button(onClick = { onBackClick() }) {
+                    Text("View Bookings")
                 }
             }
         )
