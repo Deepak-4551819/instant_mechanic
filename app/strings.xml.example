@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Instant Mechanic</string>
+    <!-- Replace with your actual Firebase OAuth Web Client ID from Firebase Console -->
+    <string name="default_web_client_id">YOUR_OAUTH_WEB_CLIENT_ID.apps.googleusercontent.com</string>
+</resources>
