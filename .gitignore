@@ -16,6 +16,3 @@ local.properties
 
 # Local Documentation & Study Notes
 /docs/
-
-# Private Credentials & Secret Configs
-app/google-services.json
