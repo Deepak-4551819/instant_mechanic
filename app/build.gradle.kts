@@ -30,7 +30,7 @@ android {
             localProperties.load(localPropertiesFile.inputStream())
         }
         val baseUrl = localProperties.getProperty("BASE_URL")
-            ?: "https://gist.githubusercontent.com/Deepak-4551819/6a7ffd019631fb932639b405c2352978/raw/28fe149458d4ba9b4c6343cb6f4532908cd79866/"
+            ?: "https://gist.githubusercontent.com/Deepak-4551819/6a7ffd019631fb932639b405c2352978/raw/"
 
         buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
     }
@@ -85,12 +85,7 @@ dependencies {
     // Room Database (Offline Cache)
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
-    implementation(libs.room.paging)
     ksp(libs.room.compiler)
-
-    // Paging 3 (Bonus Requirement)
-    implementation(libs.paging.runtime)
-    implementation(libs.paging.compose)
 
     // Coil (Image Loading for Garage/Mechanic B feed)
     implementation(libs.coil.compose)

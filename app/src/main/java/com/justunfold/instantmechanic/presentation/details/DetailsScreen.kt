@@ -1,7 +1,7 @@
 package com.justunfold.instantmechanic.presentation.details
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,8 +20,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.core.net.toUri
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 
@@ -36,40 +38,65 @@ fun DetailsScreen(
     val context = LocalContext.current
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
-                title = { Text(state.mechanic?.name ?: "Garage Details") },
+                title = {
+                    Text(
+                        text = state.mechanic?.name ?: "Garage Details",
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                        maxLines = 1
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground
+                )
             )
         },
         bottomBar = {
             state.mechanic?.let { mech ->
                 Surface(
                     tonalElevation = 8.dp,
-                    shadowElevation = 8.dp
+                    shadowElevation = 8.dp,
+                    color = MaterialTheme.colorScheme.surfaceContainerLowest,
+                    modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
                 ) {
-                    Button(
-                        onClick = { onRequestServiceClick(mech.id, mech.name) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text("Request Service")
+                    Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+                        Button(
+                            onClick = { onRequestServiceClick(mech.id, mech.name) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp),
+                            shape = RoundedCornerShape(14.dp)
+                        ) {
+                            Text(
+                                text = "Request Service",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                            )
+                        }
                     }
                 }
             }
         }
     ) { padding ->
-        if (state.isLoading) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+        if (state.isLoading || state.mechanic == null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
-        } else state.mechanic?.let { mechanic ->
+        } else {
+            val mechanic = state.mechanic!!
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -91,11 +118,25 @@ fun DetailsScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = mechanic.name, style = MaterialTheme.typography.headlineSmall)
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFFFFA000))
-                            Spacer(Modifier.width(4.dp))
-                            Text("${mechanic.rating}", style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            text = mechanic.name,
+                            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                            modifier = Modifier.weight(1f),
+                            maxLines = 2
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Surface(
+                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            ) {
+                                Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFFFFA000), modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(4.dp))
+                                Text("${mechanic.rating}", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+                            }
                         }
                     }
 
@@ -115,23 +156,41 @@ fun DetailsScreen(
                         Text(mechanic.workingHours, style = MaterialTheme.typography.bodyMedium)
                     }
 
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(18.dp))
 
-                    OutlinedButton(
+                    Button(
                         onClick = {
-                            val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${mechanic.phoneNumber}"))
-                            context.startActivity(intent)
+                            val phone = mechanic.phoneNumber.trim()
+                            if (phone.isNotBlank()) {
+                                try {
+                                    val intent = Intent(Intent.ACTION_DIAL, "tel:$phone".toUri())
+                                    context.startActivity(intent)
+                                } catch (_: ActivityNotFoundException) {
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
                     ) {
-                        Icon(Icons.Default.Call, contentDescription = null)
+                        Icon(Icons.Default.Call, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Call Garage (${mechanic.phoneNumber})")
+                        Text(
+                            text = "Call Garage (${mechanic.phoneNumber})",
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+                        )
                     }
 
                     Spacer(Modifier.height(20.dp))
 
-                    Text("Services Offered", style = MaterialTheme.typography.titleMedium)
+                    Text("Services Offered", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
                     Spacer(Modifier.height(8.dp))
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),

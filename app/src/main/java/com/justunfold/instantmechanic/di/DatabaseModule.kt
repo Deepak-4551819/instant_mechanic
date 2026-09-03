@@ -3,6 +3,7 @@ package com.justunfold.instantmechanic.di
 import android.content.Context
 import androidx.room.Room
 import com.justunfold.instantmechanic.data.database.MechanicDatabase
+import com.justunfold.instantmechanic.data.database.dao.MechanicDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -22,5 +23,11 @@ object DatabaseModule {
             MechanicDatabase::class.java,
             "mechanic_db.db"
         ).fallbackToDestructiveMigration(dropAllTables = true).build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideMechanicDao(db: MechanicDatabase): MechanicDao {
+        return db.mechanicDao
     }
 }
