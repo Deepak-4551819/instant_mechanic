@@ -1,6 +1,7 @@
 package com.justunfold.instantmechanic.presentation.navigation
 
 sealed class Screen(val route: String) {
+    data object Auth : Screen("auth_screen")
     data object Home : Screen("home_screen")
     data object Details : Screen("details_screen/{mechanicId}") {
         fun passId(id: String) = "details_screen/$id"

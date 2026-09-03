@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -34,9 +35,19 @@ fun HomeScreen(
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Instant Mechanic") }
+                title = {
+                    Text(
+                        "Instant Mechanic",
+                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground
+                )
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -46,13 +57,12 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // Search Bar
             OutlinedTextField(
                 value = state.searchQuery,
                 onValueChange = { viewModel.handleIntent(HomeIntent.SearchQueryChanged(it)) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 6.dp),
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
                 placeholder = { Text("Search by garage, service or area...") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 trailingIcon = {
@@ -63,28 +73,27 @@ fun HomeScreen(
                     }
                 },
                 singleLine = true,
-                shape = RoundedCornerShape(24.dp),
+                shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surface,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest
                 )
             )
 
-            // Open Filter Toggle
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 FilterChip(
                     selected = state.filterOnlyOpen,
                     onClick = { viewModel.handleIntent(HomeIntent.ToggleOpenFilter(!state.filterOnlyOpen)) },
-                    label = { Text("Open Now Only") }
+                    label = { Text("Open Now Only") },
+                    shape = RoundedCornerShape(10.dp)
                 )
             }
 
-            // Body content
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -96,12 +105,13 @@ fun HomeScreen(
                     Text(
                         text = "No mechanics found.",
                         modifier = Modifier.align(Alignment.Center),
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 } else {
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(14.dp),
-                        contentPadding = PaddingValues(vertical = 12.dp)
+                        contentPadding = PaddingValues(top = 4.dp, bottom = 16.dp)
                     ) {
                         items(state.filteredMechanics, key = { it.id }) { mechanic ->
                             MechanicCard(
