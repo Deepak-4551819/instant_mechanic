@@ -57,6 +57,7 @@ android {
 dependencies {
     // AndroidX & Compose Foundation
     implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui.text.google.fonts)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -102,6 +103,7 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
+    implementation(libs.play.services.auth)
 
     // Unit & Instrumentation Testing
     testImplementation(libs.junit)
