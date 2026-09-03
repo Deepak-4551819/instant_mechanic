@@ -2,7 +2,7 @@ package com.justunfold.instantmechanic.data.repository
 
 import com.justunfold.instantmechanic.core.util.Resource
 import com.justunfold.instantmechanic.data.api.MechanicApiService
-import com.justunfold.instantmechanic.data.database.MechanicDatabase
+import com.justunfold.instantmechanic.data.database.dao.MechanicDao
 import com.justunfold.instantmechanic.data.mapper.toDomain
 import com.justunfold.instantmechanic.data.mapper.toEntity
 import com.justunfold.instantmechanic.domain.model.Mechanic
@@ -15,10 +15,8 @@ import javax.inject.Inject
 
 class MechanicRepositoryImpl @Inject constructor(
     private val api: MechanicApiService,
-    private val db: MechanicDatabase
+    private val dao: MechanicDao
 ) : MechanicRepository {
-
-    private val dao = db.mechanicDao
 
     override fun getMechanics(fetchFromRemote: Boolean): Flow<Resource<List<Mechanic>>> = flow {
         emit(Resource.Loading(true))

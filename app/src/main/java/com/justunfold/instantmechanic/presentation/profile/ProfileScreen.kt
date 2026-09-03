@@ -5,9 +5,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,12 +27,13 @@ fun ProfileScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        "Profile & Settings",
-                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
+                        "My Profile",
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -86,24 +84,21 @@ fun ProfileScreen(
                         FilterChip(
                             selected = currentTheme == ThemeMode.SYSTEM,
                             onClick = { ThemeManager.setTheme(ThemeMode.SYSTEM) },
-                            label = { Text("System") },
-                            leadingIcon = { Icon(Icons.Default.PhoneAndroid, null, Modifier.size(16.dp)) },
+                            label = { Text("System", maxLines = 1, style = MaterialTheme.typography.bodySmall) },
                             shape = RoundedCornerShape(10.dp),
                             modifier = Modifier.weight(1f)
                         )
                         FilterChip(
                             selected = currentTheme == ThemeMode.LIGHT,
                             onClick = { ThemeManager.setTheme(ThemeMode.LIGHT) },
-                            label = { Text("Light") },
-                            leadingIcon = { Icon(Icons.Default.LightMode, null, Modifier.size(16.dp)) },
+                            label = { Text("Light", maxLines = 1, style = MaterialTheme.typography.bodySmall) },
                             shape = RoundedCornerShape(10.dp),
                             modifier = Modifier.weight(1f)
                         )
                         FilterChip(
                             selected = currentTheme == ThemeMode.DARK,
                             onClick = { ThemeManager.setTheme(ThemeMode.DARK) },
-                            label = { Text("Dark") },
-                            leadingIcon = { Icon(Icons.Default.DarkMode, null, Modifier.size(16.dp)) },
+                            label = { Text("Dark", maxLines = 1, style = MaterialTheme.typography.bodySmall) },
                             shape = RoundedCornerShape(10.dp),
                             modifier = Modifier.weight(1f)
                         )

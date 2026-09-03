@@ -1,5 +1,6 @@
 package com.justunfold.instantmechanic
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -37,6 +39,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isNavigationBarContrastEnforced = false
+        }
+
         setContent {
             InstantMechanicTheme {
                 val navController = rememberNavController()
@@ -72,7 +79,12 @@ class MainActivity : ComponentActivity() {
                                 items.forEach { item ->
                                     NavigationBarItem(
                                         icon = { Icon(item.icon, contentDescription = item.title) },
-                                        label = { Text(item.title) },
+                                        label = {
+                                            Text(
+                                                text = item.title,
+                                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold)
+                                            )
+                                        },
                                         selected = currentRoute == item.route,
                                         onClick = {
                                             navController.navigate(item.route) {
@@ -153,7 +165,15 @@ class MainActivity : ComponentActivity() {
                             RequestServiceScreen(
                                 mechanicId = mechId,
                                 mechanicName = mechName,
-                                onBackClick = { navController.popBackStack() }
+                                onBackClick = { navController.popBackStack() },
+                                onNavigateToBookings = {
+                                    navController.navigate(BottomNavItem.Bookings.route) {
+                                        popUpTo(BottomNavItem.Garages.route) {
+                                            inclusive = false
+                                        }
+                                        launchSingleTop = true
+                                    }
+                                }
                             )
                         }
                     }

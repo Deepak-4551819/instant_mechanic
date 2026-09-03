@@ -30,7 +30,7 @@ class HomeViewModel @Inject constructor(
 
     fun handleIntent(intent: HomeIntent) {
         when (intent) {
-            is HomeIntent.LoadMechanics -> fetchMechanics(fetchFromRemote = false)
+            is HomeIntent.LoadMechanics -> fetchMechanics(fetchFromRemote = true)
             is HomeIntent.RefreshMechanics -> fetchMechanics(fetchFromRemote = true)
             is HomeIntent.SearchQueryChanged -> _uiState.update { it.copy(searchQuery = intent.query) }
             is HomeIntent.ToggleOpenFilter -> _uiState.update { it.copy(filterOnlyOpen = intent.onlyOpen) }
@@ -43,8 +43,11 @@ class HomeViewModel @Inject constructor(
                 when (result) {
                     is Resource.Loading -> {
                         _uiState.update {
-                            if (fetchFromRemote) it.copy(isRefreshing = result.isLoading)
-                            else it.copy(isLoading = result.isLoading)
+                            if (fetchFromRemote && it.mechanics.isNotEmpty()) {
+                                it.copy(isRefreshing = result.isLoading)
+                            } else {
+                                it.copy(isLoading = result.isLoading)
+                            }
                         }
                     }
                     is Resource.Success -> {

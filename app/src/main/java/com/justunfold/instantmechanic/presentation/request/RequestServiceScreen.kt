@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -22,6 +22,7 @@ fun RequestServiceScreen(
     mechanicId: String,
     mechanicName: String,
     onBackClick: () -> Unit,
+    onNavigateToBookings: () -> Unit,
     viewModel: RequestViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -43,14 +44,25 @@ fun RequestServiceScreen(
             !state.isSubmitting
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
-                title = { Text("Request Service", fontWeight = FontWeight.SemiBold) },
+                title = {
+                    Text(
+                        "Request Service",
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground
+                )
             )
         }
     ) { padding ->
@@ -167,7 +179,7 @@ fun RequestServiceScreen(
                 if (state.isSubmitting) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                 } else {
-                    Text("Confirm & Submit to Firestore", style = MaterialTheme.typography.titleSmall)
+                    Text("Confirm & Submit", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
                 }
             }
         }
@@ -175,14 +187,14 @@ fun RequestServiceScreen(
 
     if (state.isSuccess) {
         AlertDialog(
-            onDismissRequest = { onBackClick() },
-            title = { Text("Request Synced to Cloud!", fontWeight = FontWeight.Bold) },
+            onDismissRequest = { onNavigateToBookings() },
+            title = { Text("Service Request Sent!", fontWeight = FontWeight.Bold) },
             text = {
-                Text("Your request for $selectedService has been stored in Firebase Firestore. The garage team will reach out at $phoneNumber.")
+                Text("Your request for $selectedService has been successfully submitted to $mechanicName. The garage team will reach out at $phoneNumber.")
             },
             confirmButton = {
-                Button(onClick = { onBackClick() }) {
-                    Text("View Bookings")
+                Button(onClick = { onNavigateToBookings() }) {
+                    Text("View My Bookings")
                 }
             }
         )
